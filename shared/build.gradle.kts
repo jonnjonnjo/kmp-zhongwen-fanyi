@@ -1,37 +1,34 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinMultiplatform)
+  alias(libs.plugins.androidLibrary)
 }
 
 kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+  androidTarget { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
+
+  jvm()
+
+  sourceSets {
+    commonMain.dependencies {
+      // put your Multiplatform dependencies here
+    }
+    commonTest.dependencies { implementation(libs.kotlin.test) }
+    val jvmMain by getting {
+        dependencies {
+            implementation("com.hankcs:hanlp:portable-1.8.4")
         }
     }
-    
-    jvm()
-    
-    sourceSets {
-        commonMain.dependencies {
-            // put your Multiplatform dependencies here
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-    }
+  }
 }
 
 android {
-    namespace = "com.jon.zhongwen_helper.shared"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
+  namespace = "com.jon.zhongwen_helper.shared"
+  compileSdk = libs.versions.android.compileSdk.get().toInt()
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+  }
+  defaultConfig { minSdk = libs.versions.android.minSdk.get().toInt() }
 }

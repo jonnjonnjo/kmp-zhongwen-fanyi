@@ -1,0 +1,11 @@
+/home/jon/Coding/kmp-zhongwen-fanyi/shared/build.gradle.kts:20: Warning: Use version catalog instead [UseTomlInstead]
+            implementation("com.hankcs:hanlp:portable-1.8.4")
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UseTomlInstead":
+   If your project is using a libs.versions.toml file, you should place all
+   Gradle dependencies in the TOML file. This lint check looks for version
+   declarations outside of the TOML file and suggests moving them (and in the
+   IDE, provides a quickfix to performing the operation automatically).
+
+0 errors, 1 warning

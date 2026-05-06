@@ -1,0 +1,9 @@
+com.jon.zhongwen_helper.shared-pngs-0 /home/jon/Coding/kmp-zhongwen-fanyi/shared/build/generated/res/pngs/release
+com.jon.zhongwen_helper.shared-resValues-1 /home/jon/Coding/kmp-zhongwen-fanyi/shared/build/generated/res/resValues/release
+com.jon.zhongwen_helper.shared-mergeReleaseResources-2 /home/jon/Coding/kmp-zhongwen-fanyi/shared/build/intermediates/incremental/release/mergeReleaseResources/merged.dir
+com.jon.zhongwen_helper.shared-mergeReleaseResources-3 /home/jon/Coding/kmp-zhongwen-fanyi/shared/build/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+com.jon.zhongwen_helper.shared-release-4 /home/jon/Coding/kmp-zhongwen-fanyi/shared/build/intermediates/merged_res/release/mergeReleaseResources
+com.jon.zhongwen_helper.shared-androidMain-5 /home/jon/Coding/kmp-zhongwen-fanyi/shared/src/androidMain/res
+com.jon.zhongwen_helper.shared-androidRelease-6 /home/jon/Coding/kmp-zhongwen-fanyi/shared/src/androidRelease/res
+com.jon.zhongwen_helper.shared-main-7 /home/jon/Coding/kmp-zhongwen-fanyi/shared/src/main/res
+com.jon.zhongwen_helper.shared-release-8 /home/jon/Coding/kmp-zhongwen-fanyi/shared/src/release/res

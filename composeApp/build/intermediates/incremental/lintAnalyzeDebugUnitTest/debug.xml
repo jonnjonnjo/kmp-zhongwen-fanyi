@@ -1,0 +1,26 @@
+<variant
+    name="debug"
+    package="com.jon.zhongwen_helper"
+    minSdkVersion="24"
+    targetSdkVersion="36.0"
+    debuggable="true"
+    mergedManifest="build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml"
+    partialResultsDir="build/intermediates/unit_test_lint_partial_results/debug/lintAnalyzeDebugUnitTest/out"
+    desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/b1efd8084b419e946d170edeb387e7d1/transformed/D8BackportedDesugaredMethods.txt">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+  </sourceProviders>
+  <testSourceProviders>
+    <sourceProvider
+        manifests="src/androidUnitTest/AndroidManifest.xml"
+        javaDirectories="src/test/java:src/testDebug/java:src/androidUnitTest/kotlin:build/generated/compose/resourceGenerator/kotlin/androidUnitTestResourceAccessors:src/test/kotlin:src/androidUnitTestDebug/kotlin:build/generated/compose/resourceGenerator/kotlin/androidUnitTestDebugResourceAccessors:src/testDebug/kotlin"
+        assetsDirectories="src/test/assets:src/androidUnitTest/assets:src/testDebug/assets:src/androidUnitTestDebug/assets"
+        unitTest="true"/>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      type="UNIT_TEST">
+  </artifact>
+</variant>

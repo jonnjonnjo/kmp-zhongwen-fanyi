@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: com.jon.zhongwen_helper.ApplicationKt
+Multi-Release: true
+

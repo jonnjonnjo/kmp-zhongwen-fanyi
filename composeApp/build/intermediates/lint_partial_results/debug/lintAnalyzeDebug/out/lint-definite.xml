@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.11.2" type="incidents">
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of Gradle than 8.14.3 is available: 8.14.4">
+        <fix-replace
+            description="Update to 8.14.4"
+            oldString="8.14.3"
+            replacement="8.14.4"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/wrapper/gradle-wrapper.properties"
+            line="3"
+            column="17"
+            startOffset="81"
+            endLine="3"
+            endColumn="81"
+            endOffset="145"/>
+    </incident>
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of com.android.application than 8.11.2 is available: 9.2.1">
+        <fix-replace
+            description="Replace with 9.2.1"
+            family="Update versions"
+            oldString="8.11.2"
+            replacement="9.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="2"
+            column="7"
+            startOffset="17"
+            endLine="2"
+            endColumn="15"
+            endOffset="25"/>
+        <map>
+            <entry
+                name="coordinate"
+                string="com.android.application"/>
+            <entry
+                name="revision"
+                string="9.2.1"/>
+        </map>
+    </incident>
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of com.android.library than 8.11.2 is available: 9.2.1">
+        <fix-replace
+            description="Replace with 9.2.1"
+            family="Update versions"
+            oldString="8.11.2"
+            replacement="9.2.1"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="2"
+            column="7"
+            startOffset="17"
+            endLine="2"
+            endColumn="15"
+            endOffset="25"/>
+        <map>
+            <entry
+                name="coordinate"
+                string="com.android.application"/>
+            <entry
+                name="revision"
+                string="9.2.1"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.compose.hot-reload than 1.0.0 is available: 1.1.0">
+        <fix-replace
+            description="Change to 1.1.0"
+            family="Update versions"
+            oldString="1.0.0"
+            replacement="1.1.0"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="12"
+            column="20"
+            startOffset="286"
+            endLine="12"
+            endColumn="27"
+            endOffset="293"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.jvm than 2.3.20 is available: 2.3.21">
+        <fix-replace
+            description="Change to 2.3.21"
+            family="Update versions"
+            oldString="2.3.20"
+            replacement="2.3.21"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="15"
+            column="10"
+            startOffset="352"
+            endLine="15"
+            endColumn="18"
+            endOffset="360"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.multiplatform than 2.3.20 is available: 2.3.21">
+        <fix-replace
+            description="Change to 2.3.21"
+            family="Update versions"
+            oldString="2.3.20"
+            replacement="2.3.21"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="15"
+            column="10"
+            startOffset="352"
+            endLine="15"
+            endColumn="18"
+            endOffset="360"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.3.20 is available: 2.3.21">
+        <fix-replace
+            description="Change to 2.3.21"
+            family="Update versions"
+            oldString="2.3.20"
+            replacement="2.3.21"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="15"
+            column="10"
+            startOffset="352"
+            endLine="15"
+            endColumn="18"
+            endOffset="360"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.ktor.plugin than 3.4.1 is available: 3.4.3">
+        <fix-replace
+            description="Change to 3.4.3"
+            family="Update versions"
+            oldString="3.4.1"
+            replacement="3.4.3"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="17"
+            column="8"
+            startOffset="398"
+            endLine="17"
+            endColumn="15"
+            endOffset="405"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.ktor:ktor-server-core-jvm than 3.4.1 is available: 3.4.3">
+        <fix-replace
+            description="Change to 3.4.3"
+            family="Update versions"
+            oldString="3.4.1"
+            replacement="3.4.3"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="17"
+            column="8"
+            startOffset="398"
+            endLine="17"
+            endColumn="15"
+            endOffset="405"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.ktor:ktor-server-netty-jvm than 3.4.1 is available: 3.4.3">
+        <fix-replace
+            description="Change to 3.4.3"
+            family="Update versions"
+            oldString="3.4.1"
+            replacement="3.4.3"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="17"
+            column="8"
+            startOffset="398"
+            endLine="17"
+            endColumn="15"
+            endOffset="405"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of io.ktor:ktor-server-test-host-jvm than 3.4.1 is available: 3.4.3">
+        <fix-replace
+            description="Change to 3.4.3"
+            family="Update versions"
+            oldString="3.4.1"
+            replacement="3.4.3"
+            priority="0"/>
+        <location
+            file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
+            line="17"
+            column="8"
+            startOffset="398"
+            endLine="17"
+            endColumn="15"
+            endOffset="405"/>
+    </incident>
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="This folder configuration (`v24`) is unnecessary; `minSdkVersion` is 24. Merge all the resources in this folder into `drawable`.">
+        <fix-data file="${:composeApp*debug*MAIN*sourceProvider*0*resDir*1}/drawable-v24" folderName="drawable" requiresApi="24"/>
+        <location
+            file="${:composeApp*debug*MAIN*sourceProvider*0*resDir*1}/drawable-v24"/>
+    </incident>
+
+    <incident
+        id="MonochromeLauncherIcon"
+        severity="warning"
+        message="The application adaptive icon is missing a monochrome tag">
+        <location
+            file="${:composeApp*debug*MAIN*sourceProvider*0*resDir*1}/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="5"
+            endColumn="17"
+            endOffset="272"/>
+    </incident>
+
+    <incident
+        id="MonochromeLauncherIcon"
+        severity="warning"
+        message="The application adaptive roundIcon is missing a monochrome tag">
+        <location
+            file="${:composeApp*debug*MAIN*sourceProvider*0*resDir*1}/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="5"
+            endColumn="17"
+            endOffset="272"/>
+    </incident>
+
+</incidents>
