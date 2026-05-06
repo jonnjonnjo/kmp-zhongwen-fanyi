@@ -1,9 +1,9 @@
 <libraries>
   <library
       name=":@@:shared::debug"
-      jars="/home/jon/.gradle/caches/8.14.3/transforms/d5cac2c28b2fef695168c7c6f5f4f739/transformed/out/jars/classes.jar:/home/jon/.gradle/caches/8.14.3/transforms/d5cac2c28b2fef695168c7c6f5f4f739/transformed/out/jars/libs/R.jar"
+      jars="/home/jon/.gradle/caches/8.14.3/transforms/a27fdbcc7f64fef0bfe63cc9da601879/transformed/out/jars/classes.jar:/home/jon/.gradle/caches/8.14.3/transforms/a27fdbcc7f64fef0bfe63cc9da601879/transformed/out/jars/libs/R.jar"
       resolved="zhongwen-helper:shared:unspecified"
-      folder="/home/jon/.gradle/caches/8.14.3/transforms/d5cac2c28b2fef695168c7c6f5f4f739/transformed/out"
+      folder="/home/jon/.gradle/caches/8.14.3/transforms/a27fdbcc7f64fef0bfe63cc9da601879/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"
