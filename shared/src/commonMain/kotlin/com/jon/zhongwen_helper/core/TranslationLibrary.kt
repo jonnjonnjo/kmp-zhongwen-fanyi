@@ -41,7 +41,7 @@ class TranslationLibrary(
         TokenBreakdown(
           token = token.text,
           lang = token.lang,
-          pinyin = entry.pinyin,
+          pinyin = entry.pinyin?.let { numericalToTone(it) },
           meaning = entry.meanings.joinToString(" / ")
         )
       )
@@ -72,7 +72,7 @@ class TranslationLibrary(
       TokenBreakdown(
         token = token.text,
         lang = token.lang,
-        pinyin = entry?.pinyin,
+        pinyin = entry?.pinyin?.let { numericalToTone(it) },
         meaning = entry?.meanings?.joinToString(" / ") ?: token.text
       )
     }
