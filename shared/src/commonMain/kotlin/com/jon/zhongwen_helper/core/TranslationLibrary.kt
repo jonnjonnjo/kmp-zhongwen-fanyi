@@ -33,77 +33,74 @@ class TranslationLibrary(
   }
 
   private suspend fun dictionaryLookup(input: String, tokens: List<Token>): TranslationResult {
-    val token = tokens.first()
-    val entry = dictionary.lookup(token.text)
+    val breakdowns = mutableListOf<TokenBreakdown>()
 
-    return if (entry != null) {
-      TranslationResult(
-              input = input,
-              fullMeaning = entry.meanings.first(),
-              breakdown =
-                      listOf(
-                              TokenBreakdown(
-                                      token = token.text,
-                                      lang = token.lang,
-                                      pinyin = entry.pinyin,
-                                      meaning = entry.meanings.joinToString(" / ")
-                              )
-                      )
+    for (token in tokens) {
+      val entry = dictionary.lookup(token.text) ?: return llmLookup(input, tokens)
+      breakdowns.add(
+        TokenBreakdown(
+          token = token.text,
+          lang = token.lang,
+          pinyin = entry.pinyin,
+          meaning = entry.meanings.joinToString(" / ")
+        )
       )
-    } else {
-      llmLookup(input, tokens)
     }
+
+    val fullMeaning = llmEngine.infer(buildFullMeaningPrompt(input))
+
+    return TranslationResult(
+      input = input,
+      fullMeaning = fullMeaning,
+      breakdown = breakdowns
+    )
   }
 
   private suspend fun llmLookup(input: String, tokens: List<Token>): TranslationResult {
-    val prompt = buildPrompt(input)
-    val raw = llmEngine.infer(prompt)
-    return parseResponse(input, raw)
+    val chineseOutput = llmEngine.infer(buildToChinesePrompt(input)).trim()
+
+    val outputTokens = tokenize(chineseOutput).flatMap { token ->
+      if (token.lang == Lang.CHINESE) {
+        segmenter.segment(token.text).map { Token(it, Lang.CHINESE) }
+      } else {
+        listOf(token)
+      }
+    }
+
+    val breakdowns = outputTokens.map { token ->
+      val entry = if (token.lang == Lang.CHINESE) dictionary.lookup(token.text) else null
+      TokenBreakdown(
+        token = token.text,
+        lang = token.lang,
+        pinyin = entry?.pinyin,
+        meaning = entry?.meanings?.joinToString(" / ") ?: token.text
+      )
+    }
+
+    return TranslationResult(
+      input = input,
+      fullMeaning = chineseOutput,
+      breakdown = breakdowns
+    )
   }
 
-  private fun buildPrompt(input: String): String {
+  private fun buildFullMeaningPrompt(input: String): String {
     return """
-            You are a Chinese-English translation assistant.
-            Given the input, return ONLY a JSON object in this exact format, no explanation:
-            {
-                "fullMeaning": "the full translation",
-                "breakdown": [
-                    { "token": "word", "pinyin": "pīnyīn or null", "meaning": "meaning" }
-                ]
-            }
-            Rules:
-            - fullMeaning is always in the opposite language of the input
-            - breakdown reflects the fullMeaning side, always in Chinese tokens
-            - pinyin is null for English tokens
-            Input: $input
-        """.trimIndent()
+      Translate the following text to English.
+      Rules:
+      - Translate the EXACT meaning, do NOT add, remove, or negate anything
+      - Reply with ONLY the translated text, no explanation, no punctuation changes
+      Text: $input
+    """.trimIndent()
   }
 
-  private fun parseResponse(input: String, raw: String): TranslationResult {
-    val fullMeaning =
-            Regex(""""fullMeaning"\s*:\s*"([^"]+)"""").find(raw)?.groupValues?.get(1) ?: raw
-
-    val breakdown =
-            Regex(
-                            """"token"\s*:\s*"([^"]+)"\s*,\s*"pinyin"\s*:\s*"?([^",}]*)"?\s*,\s*"meaning"\s*:\s*"([^"]+)""""
-                    )
-                    .findAll(raw)
-                    .map {
-                      TokenBreakdown(
-                              token = it.groupValues[1],
-                              lang =
-                                      if (it.groupValues[1].any { c -> c.code in 0x4E00..0x9FFF })
-                                              Lang.CHINESE
-                                      else Lang.ENGLISH,
-                              pinyin =
-                                      it.groupValues[2].takeIf { p ->
-                                        p.isNotBlank() && p != "null"
-                                      },
-                              meaning = it.groupValues[3]
-                      )
-                    }
-                    .toList()
-
-    return TranslationResult(input = input, fullMeaning = fullMeaning, breakdown = breakdown)
+  private fun buildToChinesePrompt(input: String): String {
+    return """
+      Translate the following text to Chinese (Mandarin).
+      Rules:
+      - Reply with ONLY the Chinese translation, no explanation, no pinyin
+      - Translate the EXACT meaning, do NOT add or remove anything
+      Text: $input
+    """.trimIndent()
   }
 }
