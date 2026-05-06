@@ -6,7 +6,7 @@
     mergedManifest="build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml"
     proguardFiles="build/intermediates/default_proguard_files/global/proguard-android.txt-8.11.2"
     partialResultsDir="build/intermediates/lint_vital_partial_results/release/lintVitalAnalyzeRelease/out"
-    desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/b1efd8084b419e946d170edeb387e7d1/transformed/D8BackportedDesugaredMethods.txt">
+    desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/39cc4ba1b23e979911e60f172afcf580/transformed/D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>
@@ -26,6 +26,6 @@
       applicationId="com.jon.zhongwen_helper"
       generatedSourceFolders="build/generated/ap_generated_sources/release/out"
       generatedResourceFolders="build/generated/res/resValues/release"
-      desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/b1efd8084b419e946d170edeb387e7d1/transformed/D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/39cc4ba1b23e979911e60f172afcf580/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

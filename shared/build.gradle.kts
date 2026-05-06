@@ -17,7 +17,6 @@ kotlin {
     commonTest.dependencies { implementation(libs.kotlin.test) }
     val jvmMain by getting {
         dependencies {
-            implementation("com.hankcs:hanlp:portable-1.8.4")
         }
     }
   }

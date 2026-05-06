@@ -16,6 +16,7 @@ kotlin = "2.3.20"
 kotlinx-coroutines = "1.10.2"
 ktor = "3.4.1"
 logback = "1.5.32"
+mordant = "2.7.2"
 material3 = "1.10.0-alpha05"
 
 [libraries]
@@ -38,6 +39,7 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }

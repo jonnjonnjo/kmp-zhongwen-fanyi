@@ -95,8 +95,8 @@
     "sourceSetName": "commonMain"
   },
   {
-    "moduleId": "module org.jetbrains.compose.material:material-ripple:1.10.3",
-    "file": "/home/jon/Coding/kmp-zhongwen-fanyi/composeApp/build/kotlinTransformedMetadataLibraries/commonMain/org.jetbrains.compose.material-material-ripple-1.10.3-commonMain-lNakwA.klib",
+    "moduleId": "module org.jetbrains.compose.material:material-ripple:1.9.3",
+    "file": "/home/jon/Coding/kmp-zhongwen-fanyi/composeApp/build/kotlinTransformedMetadataLibraries/commonMain/org.jetbrains.compose.material-material-ripple-1.9.3-commonMain-tnX3iQ.klib",
     "sourceSetName": "commonMain"
   },
   {

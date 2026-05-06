@@ -6,13 +6,13 @@
         severity="warning"
         message="Use version catalog instead">
         <fix-composite
-            description="Replace with new library catalog declaration for com-hankcs-hanlp3"
+            description="Replace with new library catalog declaration for com-hankcs-hanlp6"
             robot="true">
             <fix-replace
-                description="Replace with comHankcsHanlp = &quot;portable-1.8.4&quot;..."
+                description="Replace with comHankcsHanlp4 = &quot;portable-1.8.4&quot;..."
                 robot="true"
                 oldString="_lint_insert_begin_"
-                replacement="comHankcsHanlp = &quot;portable-1.8.4&quot;&#xA;"
+                replacement="comHankcsHanlp4 = &quot;portable-1.8.4&quot;&#xA;"
                 priority="0">
                 <range
                     file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
@@ -20,20 +20,20 @@
                     endOffset="267"/>
             </fix-replace>
             <fix-replace
-                description="Replace with com-hankcs-hanlp3 = { module = &quot;com.hankcs:hanlp&quot;, version.ref = &quot;comHankcsHanlp&quot; }..."
+                description="Replace with com-hankcs-hanlp6 = { module = &quot;com.hankcs:hanlp&quot;, version.ref = &quot;comHankcsHanlp4&quot; }..."
                 robot="true"
                 oldString="_lint_insert_begin_"
-                replacement="com-hankcs-hanlp3 = { module = &quot;com.hankcs:hanlp&quot;, version.ref = &quot;comHankcsHanlp&quot; }&#xA;"
+                replacement="com-hankcs-hanlp6 = { module = &quot;com.hankcs:hanlp&quot;, version.ref = &quot;comHankcsHanlp4&quot; }&#xA;"
                 priority="0">
                 <range
                     file="$HOME/Coding/kmp-zhongwen-fanyi/gradle/libs.versions.toml"
-                    startOffset="467"
-                    endOffset="467"/>
+                    startOffset="485"
+                    endOffset="485"/>
             </fix-replace>
             <fix-replace
-                description="Replace with libs.com.hankcs.hanlp3"
+                description="Replace with libs.com.hankcs.hanlp6"
                 robot="true"
-                replacement="libs.com.hankcs.hanlp3"
+                replacement="libs.com.hankcs.hanlp6"
                 priority="0">
                 <range
                     file="${:shared*projectDir}/build.gradle.kts"

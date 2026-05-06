@@ -27,6 +27,6 @@
       applicationId="com.jon.zhongwen_helper"
       generatedSourceFolders="build/generated/ap_generated_sources/debug/out"
       generatedResourceFolders="build/generated/res/resValues/debug"
-      desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/b1efd8084b419e946d170edeb387e7d1/transformed/D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="/home/jon/.gradle/caches/8.14.3/transforms/39cc4ba1b23e979911e60f172afcf580/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>
