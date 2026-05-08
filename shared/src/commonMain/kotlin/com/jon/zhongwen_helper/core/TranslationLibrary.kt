@@ -42,7 +42,7 @@ class TranslationLibrary(
           token = token.text,
           lang = token.lang,
           pinyin = entry.pinyin?.let { numericalToTone(it) },
-          meaning = entry.meanings.joinToString(" / ")
+          meaning = entry.meanings.joinToString(" / ") { convertPinyinInMeaning(it) }
         )
       )
     }
@@ -73,7 +73,7 @@ class TranslationLibrary(
         token = token.text,
         lang = token.lang,
         pinyin = entry?.pinyin?.let { numericalToTone(it) },
-        meaning = entry?.meanings?.joinToString(" / ") ?: token.text
+        meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
       )
     }
 

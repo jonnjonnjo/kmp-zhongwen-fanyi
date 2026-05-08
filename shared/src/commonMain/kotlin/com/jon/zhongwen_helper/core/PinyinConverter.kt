@@ -13,6 +13,13 @@ fun numericalToTone(pinyin: String): String {
     return pinyin.split(" ").joinToString(" ") { convertSyllable(it) }
 }
 
+fun convertPinyinInMeaning(text: String): String {
+    return text.replace(Regex("""\[([^\]]+)\]""")) { match ->
+        val inner = match.groupValues[1]
+        if (inner.any { it.isDigit() }) "[${numericalToTone(inner)}]" else match.value
+    }
+}
+
 private fun convertSyllable(syllable: String): String {
     if (syllable.isEmpty()) return syllable
 
