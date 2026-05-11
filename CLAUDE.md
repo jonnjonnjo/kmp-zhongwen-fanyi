@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`zhongwen-helper` is a Kotlin Multiplatform translator that turns mixed 中文/英文 input into a structured `TranslationResult` — a full-meaning translation plus a per-token breakdown (pinyin + dictionary meaning). The core logic lives in `shared` and is reused across frontends (terminal, Compose Desktop/Android, Ktor server) through a small dependency-injection contract.
+`zhongwen-helper` is a Kotlin Multiplatform **Chinese-learning aid** — not just a translator. It turns mixed 中文/英文 input into a structured `TranslationResult` carrying:
+
+- `chinese` — canonical Chinese rendering of the input
+- `english` — English gloss
+- `breakdown` — per-token list (token, lang, pinyin, dictionary meaning)
+
+The per-token breakdown is the differentiator; a pure translator wouldn't bother showing pinyin and per-word meanings. The core logic lives in `shared` and is reused across frontends (terminal, Compose Desktop/Android, Ktor server) through a small dependency-injection contract.
 
 `README.md` is the spec for translation behavior across the three input shapes (中文-only / 英文-only / mixed) and when AI is required vs. dictionary-only. Treat it as authoritative when changing the pipeline.
 
@@ -21,20 +27,33 @@ Four Gradle modules:
 
 `shared/.../core/TranslationLibrary.kt` is the entry point. Its constructor takes three abstractions:
 
-- `LlmEngine` — `suspend infer(prompt: String): String` (nullable; library degrades gracefully without it)
+- `LlmEngine` — `suspend infer(prompt: String): String` (nullable; `translate()` degrades gracefully without it)
 - `CedictSource` — `open(): ByteArray` returning a CEDICT-formatted file
 - `Segmenter` — `segment(text: String): List<String>` for breaking continuous Chinese into words
 
-`translate(input)` flow:
+It exposes two public functions:
+
+- `suspend fun translate(input)` — AI-routed; fills both `chinese` and `english` when LLM is available.
+- `fun translateDictionaryOnly(input)` — pure CEDICT, not `suspend`. Sets only the field that matches the input language; leaves the other `null`.
+
+`translate(input)` flow — minimum LLM calls per input shape:
+
+| Input shape | `chinese` source | `english` source | LLM calls |
+|---|---|---|---|
+| Pure 中文     | `= input`            | LLM (中文→英文)              | 1 |
+| Pure 英文     | LLM (英文→中文)       | `= input`                  | 1 |
+| Mixed        | LLM (mixed→中文)      | LLM (中文→英文 on `chinese`) | 2 |
+
+Steps inside `translate`:
 1. `tokenize()` (in `core/Tokenizer.kt`) splits on whitespace and script boundary — Chinese block `0x4E00..0x9FFF` vs everything else → `Lang.ENGLISH`.
-2. Each Chinese token is further segmented via `Segmenter` (HanLP in the TUI).
-3. `route(tokens)` (in `core/Router.kt`) → `LookupRoute.Llm` if both languages are present, else `LookupRoute.Dictionary`.
-4. **Dictionary path**: per-token CEDICT lookup via `CedictDictionary` (`core/CedictLookup.kt`). If any lookup misses and `LlmEngine != null`, fall back to the LLM path. `fullMeaning` is asked from the LLM (Chinese→English prompt) when available, else `null`.
-5. **LLM path**: prompt the LLM for the Chinese translation, then re-tokenize/segment/CEDICT-lookup the output to build the breakdown.
+2. Decide `chinese` and `english` per the table above (using LLM only when needed). If LLM is unavailable, the missing field stays `null`.
+3. Build the breakdown from `chinese ?: input`: re-tokenize, segment each Chinese run via `Segmenter`, look up each token in `CedictDictionary` (`core/CedictLookup.kt`), produce `TokenBreakdown(token, lang, pinyin, meaning)`. Tokens with no CEDICT entry echo back with `pinyin = null` and `meaning = tokenText`.
 
 `core/PinyinConverter.kt`:
 - `numericalToTone("ni3 hao3")` → `"nǐ hǎo"` (CEDICT stores numeric tones).
 - `convertPinyinInMeaning(...)` rewrites embedded `[xxx]` pinyin inside meaning strings, since CEDICT glosses often inline pinyin like `/likes [xi3 huan1]/`.
+
+There is no separate routing layer — the LLM-vs-dictionary decision is implicit in the nullable `llmEngine` and the input's language composition.
 
 ## Frontend injection contract
 
@@ -53,7 +72,7 @@ When wiring Android, expect to write Android-side counterparts (e.g. MediaPipe `
 ./gradlew :tui:run --args="我喜欢学习中文"
 ./gradlew :tui:run --args="--no-llm 你好"     # dictionary-only mode
 
-# Build a runnable script at build/install/tui/bin/jzw
+# Build a runnable script at tui/build/install/jzw/bin/jzw
 ./gradlew :tui:installDist
 
 # Compose Desktop (stub UI)
@@ -71,6 +90,20 @@ When wiring Android, expect to write Android-side counterparts (e.g. MediaPipe `
 ```
 
 The TUI needs a running Ollama instance unless `--no-llm` is passed; pull the model first (`ollama pull qwen2.5:7b`).
+
+## Configuration & packaging roadmap
+
+Long-term goal: ship `jzw` to nixpkgs first, then other distros (AUR, Homebrew, etc).
+
+**Causality:** the NixOS module is a *thin wrapper* — it just renders config (env vars or a file) that the app reads. So the app must accept external config before any distro packaging can be useful. Work order:
+
+1. **CLI flags** — `--model`, `--ollama-url` (and eventually `--help`, `--version`). One-shot overrides, never persisted.
+2. **Env vars** — `JZW_MODEL`, `JZW_OLLAMA_URL`. CLI flags take precedence over env vars.
+3. **(Optional) Config file** — `$XDG_CONFIG_HOME/jzw/config.toml`. Lower precedence than env vars.
+4. **NixOS module** — `programs.jzw = { model = ...; ollamaUrl = ...; }` that maps Nix options to step-2 env vars (or step-3 config file).
+5. **Other distros** — `gradle :tui:installDist` + launcher script; basically free once steps 1–4 are settled.
+
+Convention (don't deviate): CLI flags = temporary, config file = permanent, env vars = session-scoped permanent. Same as `git`, `kubectl`, `aws`. `jzw --model foo` runs once with `foo`; persisting means editing the config file or shell rc.
 
 ## Versions
 
