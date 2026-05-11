@@ -2,7 +2,8 @@ package com.jon.zhongwen_helper.model
 
 data class TranslationResult(
         val input: String,
-        val fullMeaning: String?,
+        val chinese: String?,
+        val english: String?,
         val breakdown: List<TokenBreakdown>
 )
 

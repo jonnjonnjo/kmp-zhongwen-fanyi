@@ -40,7 +40,8 @@ fun main() {
 
                 t.println()
                 t.println(yellow("Input  : ") + result.input)
-                result.fullMeaning?.let { t.println(green("Meaning: ") + bold(it)) }
+                t.println(green("Chinese: ") + (result.chinese ?: "—"))
+                t.println(green("English: ") + (result.english ?: "—"))
 
                 if (result.breakdown.isNotEmpty()) {
                     t.println()

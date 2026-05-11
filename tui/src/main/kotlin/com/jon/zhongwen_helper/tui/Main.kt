@@ -22,7 +22,10 @@ fun main(args: Array<String>) {
         val result = library.translate(input)
 
         println("Input  : ${result.input}")
-        result.fullMeaning?.let { println("Meaning: $it") }
+        println("Chinese: ${result.chinese ?: "—"}")
+        println("English: ${result.english ?: "—"}")
+        val fullPinyin = result.breakdown.mapNotNull { it.pinyin }.joinToString(" ")
+        println("Pinyin : ${fullPinyin.ifEmpty { "—" }}")
         println("─".repeat(40))
         result.breakdown.forEach {
             val pinyin = if (it.pinyin != null) "[${it.pinyin}]" else ""

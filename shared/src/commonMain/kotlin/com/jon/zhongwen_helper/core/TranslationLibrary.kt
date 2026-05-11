@@ -15,26 +15,40 @@ class TranslationLibrary(
   private val dictionary: CedictDictionary by lazy { CedictDictionary(cedictSource.open()) }
 
   suspend fun translate(input: String): TranslationResult {
-    val tokens = prepareTokens(input)
-    return when {
-      llmEngine != null && route(tokens) is LookupRoute.Llm -> llmLookup(input, tokens)
-      else -> dictionaryLookup(input, tokens)
+    val rawTokens = tokenize(input)
+    val hasChinese = rawTokens.any { it.lang == Lang.CHINESE }
+    val hasEnglish = rawTokens.any { it.lang == Lang.ENGLISH }
+
+    val chinese: String? = when {
+      hasChinese && !hasEnglish -> input
+      llmEngine != null -> llmEngine.infer(buildToChinesePrompt(input)).trim()
+      else -> null
     }
+
+    val english: String? = when {
+      hasEnglish && !hasChinese -> input
+      chinese != null && llmEngine != null -> llmEngine.infer(buildToEnglishPrompt(chinese)).trim()
+      else -> null
+    }
+
+    val breakdownTokens = prepareTokens(chinese ?: input)
+    val breakdowns = breakdownTokens.map { it.toBreakdown() }
+
+    return TranslationResult(input = input, chinese = chinese, english = english, breakdown = breakdowns)
   }
 
-  // Best-effort: English tokens echo back with meaning = tokenText, pinyin = null, fullMeaning = null.
+  // Never invokes the LLM. chinese is set only when input is pure Chinese; english only when pure English.
   fun translateDictionaryOnly(input: String): TranslationResult {
-    val tokens = prepareTokens(input)
-    val breakdowns = tokens.map { token ->
-      val entry = dictionary.lookup(token.text)
-      TokenBreakdown(
-        token = token.text,
-        lang = token.lang,
-        pinyin = entry?.pinyin?.let { numericalToTone(it) },
-        meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
-      )
-    }
-    return TranslationResult(input = input, fullMeaning = null, breakdown = breakdowns)
+    val rawTokens = tokenize(input)
+    val hasChinese = rawTokens.any { it.lang == Lang.CHINESE }
+    val hasEnglish = rawTokens.any { it.lang == Lang.ENGLISH }
+
+    val chinese: String? = if (hasChinese && !hasEnglish) input else null
+    val english: String? = if (hasEnglish && !hasChinese) input else null
+
+    val breakdowns = prepareTokens(input).map { it.toBreakdown() }
+
+    return TranslationResult(input = input, chinese = chinese, english = english, breakdown = breakdowns)
   }
 
   private fun prepareTokens(input: String): List<Token> {
@@ -47,61 +61,14 @@ class TranslationLibrary(
     }
   }
 
-  private suspend fun dictionaryLookup(input: String, tokens: List<Token>): TranslationResult {
-    val breakdowns = mutableListOf<TokenBreakdown>()
-
-    for (token in tokens) {
-      val entry = dictionary.lookup(token.text)
-      if (entry == null && llmEngine != null) return llmLookup(input, tokens)
-      breakdowns.add(
-        TokenBreakdown(
-          token = token.text,
-          lang = token.lang,
-          pinyin = entry?.pinyin?.let { numericalToTone(it) },
-          meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
-        )
-      )
-    }
-
-    val fullMeaning = llmEngine?.infer(buildFullMeaningPrompt(input))
-
-    return TranslationResult(
-      input = input,
-      fullMeaning = fullMeaning,
-      breakdown = breakdowns
+  private fun Token.toBreakdown(): TokenBreakdown {
+    val entry = if (lang == Lang.CHINESE) dictionary.lookup(text) else null
+    return TokenBreakdown(
+      token = text,
+      lang = lang,
+      pinyin = entry?.pinyin?.let { numericalToTone(it) },
+      meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: text
     )
-  }
-
-  private suspend fun llmLookup(input: String, tokens: List<Token>): TranslationResult {
-    val chineseOutput = requireNotNull(llmEngine).infer(buildToChinesePrompt(input)).trim()
-
-    val outputTokens = prepareTokens(chineseOutput)
-
-    val breakdowns = outputTokens.map { token ->
-      val entry = if (token.lang == Lang.CHINESE) dictionary.lookup(token.text) else null
-      TokenBreakdown(
-        token = token.text,
-        lang = token.lang,
-        pinyin = entry?.pinyin?.let { numericalToTone(it) },
-        meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
-      )
-    }
-
-    return TranslationResult(
-      input = input,
-      fullMeaning = chineseOutput,
-      breakdown = breakdowns
-    )
-  }
-
-  private fun buildFullMeaningPrompt(input: String): String {
-    return """
-      Translate the following text to English.
-      Rules:
-      - Translate the EXACT meaning, do NOT add, remove, or negate anything
-      - Reply with ONLY the translated text, no explanation, no punctuation changes
-      Text: $input
-    """.trimIndent()
   }
 
   private fun buildToChinesePrompt(input: String): String {
@@ -110,6 +77,16 @@ class TranslationLibrary(
       Rules:
       - Reply with ONLY the Chinese translation, no explanation, no pinyin
       - Translate the EXACT meaning, do NOT add or remove anything
+      Text: $input
+    """.trimIndent()
+  }
+
+  private fun buildToEnglishPrompt(input: String): String {
+    return """
+      Translate the following text to English.
+      Rules:
+      - Translate the EXACT meaning, do NOT add, remove, or negate anything
+      - Reply with ONLY the translated text, no explanation, no punctuation changes
       Text: $input
     """.trimIndent()
   }
