@@ -9,9 +9,9 @@ private const val DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 fun main(args: Array<String>) {
     var noLlm = false
-    var model = DEFAULT_MODEL
-    var ollamaUrl = DEFAULT_OLLAMA_URL
-    var cedictPath: String? = null
+    var model = System.getenv("JZW_MODEL") ?: DEFAULT_MODEL
+    var ollamaUrl = System.getenv("JZW_OLLAMA_URL") ?: DEFAULT_OLLAMA_URL
+    var cedictPath: String? = System.getenv("JZW_CEDICT_PATH")
     val inputParts = mutableListOf<String>()
 
     var i = 0
