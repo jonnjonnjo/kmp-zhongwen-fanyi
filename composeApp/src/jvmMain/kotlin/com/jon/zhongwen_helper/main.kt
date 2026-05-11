@@ -40,7 +40,7 @@ fun main() {
 
                 t.println()
                 t.println(yellow("Input  : ") + result.input)
-                t.println(green("Meaning: ") + bold(result.fullMeaning))
+                result.fullMeaning?.let { t.println(green("Meaning: ") + bold(it)) }
 
                 if (result.breakdown.isNotEmpty()) {
                     t.println()

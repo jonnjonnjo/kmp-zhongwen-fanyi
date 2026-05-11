@@ -9,10 +9,11 @@ fun main(args: Array<String>) {
         return
     }
 
-    val input = args.joinToString(" ")
+    val noLlm = "--no-llm" in args
+    val input = args.filter { it != "--no-llm" }.joinToString(" ")
 
     val library = TranslationLibrary(
-        llmEngine = JvmLlmEngine(),
+        llmEngine = if (noLlm) null else JvmLlmEngine(),
         cedictSource = JvmCedictSource(),
         segmenter = HanLpSegmenter()
     )
@@ -21,7 +22,7 @@ fun main(args: Array<String>) {
         val result = library.translate(input)
 
         println("Input  : ${result.input}")
-        println("Meaning: ${result.fullMeaning}")
+        result.fullMeaning?.let { println("Meaning: $it") }
         println("─".repeat(40))
         result.breakdown.forEach {
             val pinyin = if (it.pinyin != null) "[${it.pinyin}]" else ""

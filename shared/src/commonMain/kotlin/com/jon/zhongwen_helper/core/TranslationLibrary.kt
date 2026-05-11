@@ -8,27 +8,42 @@ import com.jon.zhongwen_helper.model.TokenBreakdown
 import com.jon.zhongwen_helper.model.TranslationResult
 
 class TranslationLibrary(
-        private val llmEngine: LlmEngine,
+        private val llmEngine: LlmEngine? = null,
         private val cedictSource: CedictSource,
         private val segmenter: Segmenter
 ) {
   private val dictionary: CedictDictionary by lazy { CedictDictionary(cedictSource.open()) }
 
   suspend fun translate(input: String): TranslationResult {
-    val rawTokens = tokenize(input)
+    val tokens = prepareTokens(input)
+    return when {
+      llmEngine != null && route(tokens) is LookupRoute.Llm -> llmLookup(input, tokens)
+      else -> dictionaryLookup(input, tokens)
+    }
+  }
 
-    val tokens =
-            rawTokens.flatMap { token ->
-              if (token.lang == Lang.CHINESE) {
-                segmenter.segment(token.text).map { Token(it, Lang.CHINESE) }
-              } else {
-                listOf(token)
-              }
-            }
+  // Best-effort: English tokens echo back with meaning = tokenText, pinyin = null, fullMeaning = null.
+  fun translateDictionaryOnly(input: String): TranslationResult {
+    val tokens = prepareTokens(input)
+    val breakdowns = tokens.map { token ->
+      val entry = dictionary.lookup(token.text)
+      TokenBreakdown(
+        token = token.text,
+        lang = token.lang,
+        pinyin = entry?.pinyin?.let { numericalToTone(it) },
+        meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
+      )
+    }
+    return TranslationResult(input = input, fullMeaning = null, breakdown = breakdowns)
+  }
 
-    return when (route(tokens)) {
-      is LookupRoute.Dictionary -> dictionaryLookup(input, tokens)
-      is LookupRoute.Llm -> llmLookup(input, tokens)
+  private fun prepareTokens(input: String): List<Token> {
+    return tokenize(input).flatMap { token ->
+      if (token.lang == Lang.CHINESE) {
+        segmenter.segment(token.text).map { Token(it, Lang.CHINESE) }
+      } else {
+        listOf(token)
+      }
     }
   }
 
@@ -36,18 +51,19 @@ class TranslationLibrary(
     val breakdowns = mutableListOf<TokenBreakdown>()
 
     for (token in tokens) {
-      val entry = dictionary.lookup(token.text) ?: return llmLookup(input, tokens)
+      val entry = dictionary.lookup(token.text)
+      if (entry == null && llmEngine != null) return llmLookup(input, tokens)
       breakdowns.add(
         TokenBreakdown(
           token = token.text,
           lang = token.lang,
-          pinyin = entry.pinyin?.let { numericalToTone(it) },
-          meaning = entry.meanings.joinToString(" / ") { convertPinyinInMeaning(it) }
+          pinyin = entry?.pinyin?.let { numericalToTone(it) },
+          meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: token.text
         )
       )
     }
 
-    val fullMeaning = llmEngine.infer(buildFullMeaningPrompt(input))
+    val fullMeaning = llmEngine?.infer(buildFullMeaningPrompt(input))
 
     return TranslationResult(
       input = input,
@@ -57,15 +73,9 @@ class TranslationLibrary(
   }
 
   private suspend fun llmLookup(input: String, tokens: List<Token>): TranslationResult {
-    val chineseOutput = llmEngine.infer(buildToChinesePrompt(input)).trim()
+    val chineseOutput = requireNotNull(llmEngine).infer(buildToChinesePrompt(input)).trim()
 
-    val outputTokens = tokenize(chineseOutput).flatMap { token ->
-      if (token.lang == Lang.CHINESE) {
-        segmenter.segment(token.text).map { Token(it, Lang.CHINESE) }
-      } else {
-        listOf(token)
-      }
-    }
+    val outputTokens = prepareTokens(chineseOutput)
 
     val breakdowns = outputTokens.map { token ->
       val entry = if (token.lang == Lang.CHINESE) dictionary.lookup(token.text) else null
