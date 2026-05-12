@@ -112,11 +112,42 @@ fun main(args: Array<String>) {
         val fullPinyin = result.breakdown.mapNotNull { it.pinyin }.joinToString(" ")
         println("Pinyin : ${fullPinyin.ifEmpty { "—" }}")
         println("─".repeat(40))
-        result.breakdown.forEach {
-            val pinyin = if (it.pinyin != null) "[${it.pinyin}]" else ""
-            println("  ${it.token} $pinyin → ${it.meaning}")
+        val pinyinCol = result.breakdown.map { it.pinyin?.let { p -> "[$p]" }.orEmpty() }
+        val tokenWidth = result.breakdown.maxOfOrNull { displayWidth(it.token) } ?: 0
+        val pinyinWidth = pinyinCol.maxOfOrNull { displayWidth(it) } ?: 0
+        result.breakdown.forEachIndexed { i, b ->
+            val token = padDisplay(b.token, tokenWidth)
+            val pinyin = padDisplay(pinyinCol[i], pinyinWidth)
+            println("  $token  $pinyin  → ${b.meaning}")
         }
         println("─".repeat(40))
         println("Elapsed: $totalElapsed")
     }
+}
+
+private fun displayWidth(s: String): Int {
+    var w = 0
+    s.forEach { c ->
+        val cp = c.code
+        w += when {
+            cp in 0x1100..0x115F -> 2
+            cp in 0x2E80..0x303E -> 2
+            cp in 0x3041..0x33FF -> 2
+            cp in 0x3400..0x4DBF -> 2
+            cp in 0x4E00..0x9FFF -> 2
+            cp in 0xA000..0xA4CF -> 2
+            cp in 0xAC00..0xD7A3 -> 2
+            cp in 0xF900..0xFAFF -> 2
+            cp in 0xFE30..0xFE4F -> 2
+            cp in 0xFF00..0xFF60 -> 2
+            cp in 0xFFE0..0xFFE6 -> 2
+            else -> 1
+        }
+    }
+    return w
+}
+
+private fun padDisplay(s: String, width: Int): String {
+    val pad = width - displayWidth(s)
+    return if (pad > 0) s + " ".repeat(pad) else s
 }
