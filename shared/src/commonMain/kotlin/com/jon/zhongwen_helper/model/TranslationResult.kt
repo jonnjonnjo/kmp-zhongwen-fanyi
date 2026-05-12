@@ -10,6 +10,10 @@ data class TranslationResult(
 data class TokenBreakdown(
         val token: String,
         val lang: Lang,
-        val pinyin: String?,
-        val meaning: String,
+        val readings: List<TokenReading>,
+)
+
+data class TokenReading(
+        val pinyin: String,
+        val meanings: List<String>,
 )

@@ -14,6 +14,7 @@ application {
 
 dependencies {
     implementation(projects.shared)
+    implementation(libs.mordant)
     implementation("com.hankcs:hanlp:portable-1.8.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")

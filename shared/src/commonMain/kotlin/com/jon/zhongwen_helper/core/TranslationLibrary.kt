@@ -5,6 +5,7 @@ import com.jon.zhongwen_helper.engine.LlmEngine
 import com.jon.zhongwen_helper.model.Lang
 import com.jon.zhongwen_helper.model.Token
 import com.jon.zhongwen_helper.model.TokenBreakdown
+import com.jon.zhongwen_helper.model.TokenReading
 import com.jon.zhongwen_helper.model.TranslationResult
 
 class TranslationLibrary(
@@ -62,13 +63,16 @@ class TranslationLibrary(
   }
 
   private fun Token.toBreakdown(): TokenBreakdown {
-    val entry = if (lang == Lang.CHINESE) dictionary.lookup(text) else null
-    return TokenBreakdown(
-      token = text,
-      lang = lang,
-      pinyin = entry?.pinyin?.let { numericalToTone(it) },
-      meaning = entry?.meanings?.joinToString(" / ") { convertPinyinInMeaning(it) } ?: text
-    )
+    val entries = if (lang == Lang.CHINESE) dictionary.lookup(text) else emptyList()
+    val readings = entries
+      .groupBy { it.pinyin }
+      .map { (rawPinyin, group) ->
+        TokenReading(
+          pinyin = numericalToTone(rawPinyin),
+          meanings = group.flatMap { it.meanings }.map { convertPinyinInMeaning(it) },
+        )
+      }
+    return TokenBreakdown(token = text, lang = lang, readings = readings)
   }
 
   private fun buildToChinesePrompt(input: String): String {

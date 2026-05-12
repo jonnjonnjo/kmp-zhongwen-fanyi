@@ -1,5 +1,10 @@
 package com.jon.zhongwen_helper.tui
 
+import com.github.ajalt.mordant.rendering.OverflowWrap
+import com.github.ajalt.mordant.rendering.Whitespace
+import com.github.ajalt.mordant.table.ColumnWidth
+import com.github.ajalt.mordant.table.table
+import com.github.ajalt.mordant.terminal.Terminal
 import com.jon.zhongwen_helper.core.TranslationLibrary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -85,6 +90,8 @@ fun main(args: Array<String>) {
         segmenter = HanLpSegmenter()
     )
 
+    val terminal = Terminal()
+
     runBlocking {
         val start = TimeSource.Monotonic.markNow()
 
@@ -109,45 +116,39 @@ fun main(args: Array<String>) {
         println("Input  : ${result.input}")
         println("Chinese: ${result.chinese ?: "—"}")
         println("English: ${result.english ?: "—"}")
-        val fullPinyin = result.breakdown.mapNotNull { it.pinyin }.joinToString(" ")
+        val fullPinyin = result.breakdown
+            .mapNotNull { it.readings.firstOrNull()?.pinyin }
+            .joinToString(" ")
         println("Pinyin : ${fullPinyin.ifEmpty { "—" }}")
-        println("─".repeat(40))
-        val pinyinCol = result.breakdown.map { it.pinyin?.let { p -> "[$p]" }.orEmpty() }
-        val tokenWidth = result.breakdown.maxOfOrNull { displayWidth(it.token) } ?: 0
-        val pinyinWidth = pinyinCol.maxOfOrNull { displayWidth(it) } ?: 0
-        result.breakdown.forEachIndexed { i, b ->
-            val token = padDisplay(b.token, tokenWidth)
-            val pinyin = padDisplay(pinyinCol[i], pinyinWidth)
-            println("  $token  $pinyin  → ${b.meaning}")
-        }
-        println("─".repeat(40))
+
+        terminal.println(table {
+            whitespace = Whitespace.NORMAL
+            overflowWrap = OverflowWrap.BREAK_WORD
+            column(0) { width = ColumnWidth.Auto }
+            column(1) { width = ColumnWidth.Auto }
+            column(2) { width = ColumnWidth.Expand() }
+            header { row("Token", "Reading", "Meaning") }
+            body {
+                result.breakdown.forEach { b ->
+                    if (b.readings.isEmpty()) {
+                        row(b.token, "", b.token)
+                    } else {
+                        b.readings.forEachIndexed { idx, r ->
+                            row {
+                                if (idx == 0) {
+                                    cell(b.token) {
+                                        if (b.readings.size > 1) rowSpan = b.readings.size
+                                    }
+                                }
+                                cell("[${r.pinyin}]")
+                                cell(r.meanings.joinToString(" / "))
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
         println("Elapsed: $totalElapsed")
     }
-}
-
-private fun displayWidth(s: String): Int {
-    var w = 0
-    s.forEach { c ->
-        val cp = c.code
-        w += when {
-            cp in 0x1100..0x115F -> 2
-            cp in 0x2E80..0x303E -> 2
-            cp in 0x3041..0x33FF -> 2
-            cp in 0x3400..0x4DBF -> 2
-            cp in 0x4E00..0x9FFF -> 2
-            cp in 0xA000..0xA4CF -> 2
-            cp in 0xAC00..0xD7A3 -> 2
-            cp in 0xF900..0xFAFF -> 2
-            cp in 0xFE30..0xFE4F -> 2
-            cp in 0xFF00..0xFF60 -> 2
-            cp in 0xFFE0..0xFFE6 -> 2
-            else -> 1
-        }
-    }
-    return w
-}
-
-private fun padDisplay(s: String, width: Int): String {
-    val pad = width - displayWidth(s)
-    return if (pad > 0) s + " ".repeat(pad) else s
 }
