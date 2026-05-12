@@ -55,11 +55,26 @@ class TranslationLibrary(
   private fun prepareTokens(input: String): List<Token> {
     return tokenize(input).flatMap { token ->
       if (token.lang == Lang.CHINESE) {
-        segmenter.segment(token.text).map { Token(it, Lang.CHINESE) }
+        segmenter.segment(token.text)
+          .flatMap { refineAgainstDictionary(it) }
+          .map { Token(it, Lang.CHINESE) }
       } else {
         listOf(token)
       }
     }
+  }
+
+  // The segmenter sometimes glues verb-object compounds (e.g. "吃苹果") that aren't in CEDICT.
+  // For any segment not in the dictionary, split it via greedy longest-prefix match against CEDICT.
+  private fun refineAgainstDictionary(segment: String): List<String> {
+    if (segment.length <= 1 || dictionary.lookup(segment).isNotEmpty()) return listOf(segment)
+    for (len in segment.length - 1 downTo 2) {
+      val prefix = segment.substring(0, len)
+      if (dictionary.lookup(prefix).isNotEmpty()) {
+        return listOf(prefix) + refineAgainstDictionary(segment.substring(len))
+      }
+    }
+    return listOf(segment.substring(0, 1)) + refineAgainstDictionary(segment.substring(1))
   }
 
   private fun Token.toBreakdown(): TokenBreakdown {
