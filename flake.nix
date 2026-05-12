@@ -23,12 +23,19 @@
           ];
 
           mitmCache = pkgs.gradle.fetchDeps {
-            inherit (finalAttrs) pname;
+            pkg = finalAttrs.finalPackage;
             data = ./nix/deps.json;
           };
 
           gradleBuildTask = ":tui:installDist";
-          gradleFlags = [ "--no-daemon" ];
+          gradleUpdateTask = ":tui:nixDownloadDeps :shared:nixDownloadDeps";
+          gradleFlags = [ "--no-daemon" "--no-configuration-cache" ];
+
+          # Append a filter init script *after* the nixpkgs default so we can
+          # tolerate Android-only configurations failing to resolve.
+          preGradleUpdate = ''
+            gradleFlagsArray+=(--init-script "$PWD/nix/init-deps-filter.gradle")
+          '';
 
           installPhase = ''
             runHook preInstall
