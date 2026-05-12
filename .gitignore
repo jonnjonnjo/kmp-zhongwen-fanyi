@@ -24,3 +24,8 @@ Thumbs.db
 *.aab
 *.keystore
 *.jks
+
+# Nix build outputs
+result
+result-*
+.update-deps

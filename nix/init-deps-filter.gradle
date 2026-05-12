@@ -1,0 +1,25 @@
+// Replaces the nixpkgs `nixDownloadDeps` task with one that tolerates
+// configurations that fail to resolve (e.g. `:shared:androidApis`, which
+// needs an Android SDK we don't ship in the Nix build).
+gradle.projectsLoaded {
+  rootProject.allprojects {
+    afterEvaluate { project ->
+      def task = project.tasks.findByName('nixDownloadDeps')
+      if (task != null) {
+        task.actions.clear()
+        task.doLast {
+          project.configurations.findAll { it.canBeResolved }.each { c ->
+            try {
+              c.resolve()
+            } catch (Exception e) {
+              project.logger.lifecycle("nixDownloadDeps: skipping ${c.name}: ${e.message}")
+            }
+          }
+          project.buildscript.configurations.findAll { it.canBeResolved }.each { c ->
+            try { c.resolve() } catch (Exception ignored) {}
+          }
+        }
+      }
+    }
+  }
+}

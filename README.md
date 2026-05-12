@@ -1,59 +1,93 @@
-This is a Kotlin Multiplatform project targeting Android, Desktop (JVM), Server.
+# Documentation 
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Core Module 
+So, the core module would generally accept a string (could be in 中文/英文/mixed) and then do this 
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+1. Find the meaning of the string 
+2. Find the full 中文 of the string 
+3. For each 汉字 character in the translated string, do the semantic meaning of each character. 
 
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+### When is AI required?
 
-### Build and Run Android Application
+Step 3 is **always CEDICT** — AI is never used for the per-汉字 breakdown.
+AI is only ever used to produce the Chinese string that step 3 then operates on (or to translate 中文 → English for the full meaning).
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+| Input shape       | Step 1 (full meaning) | Step 2 (full 中文) | Step 3 (per-汉字 breakdown) |
+| ----------------- | --------------------- | ------------------ | --------------------------- |
+| 中文, 1 token     | n/a (input == output) | n/a                | CEDICT                      |
+| 中文, 2+ tokens   | AI                    | n/a                | CEDICT                      |
+| 英文              | n/a (input == output) | AI                 | CEDICT (on AI's output)     |
+| Mixed             | AI                    | AI                 | CEDICT (on AI's output)     |
 
-### Build and Run Desktop (JVM) Application
+Here are several test cases 
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+1. 中文
+    - 1 Token (1 phrase/1 Word) 
+        - Require AI : ✘
 
-### Build and Run Server
+```
+TranslationResult(
+    input       = "我",
+    fullMeaning = "I",
+    breakdown   = [
+        TokenBreakdown("我",   CHINESE, "wǒ",       "I / me"),
+    ]
+)
+```
+   - 2 Token or more
+        - Require AI : Only when finding fullMeaning
+```
+TranslationResult(
+    input       = "我喜欢学习中文",
+    fullMeaning = "I like studying Chinese",
+    breakdown   = [
+        TokenBreakdown("我",   CHINESE, "wǒ",       "I / me"),
+        TokenBreakdown("喜欢", CHINESE, "xǐ huān",  "to like / to enjoy"),
+        TokenBreakdown("学习", CHINESE, "xué xí",   "to study / to learn"),
+        TokenBreakdown("中文", CHINESE, "zhōng wén","Chinese language")
+    ]
+)
+```
 
-To build and run the development version of the server, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :server:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :server:run
-  ```
+2. 英文
+    - Require AI : ✔ When translating input to fullMeaning
+```
+TranslationResult(
+    input       = "I like studying Chinese",
+    fullMeaning = "我喜欢学习中文",
+    breakdown   = [
+        TokenBreakdown("我",   CHINESE, "wǒ",       "I / me"),
+        TokenBreakdown("喜欢", CHINESE, "xǐ huān",  "to like / to enjoy"),
+        TokenBreakdown("学习", CHINESE, "xué xí",   "to study / to learn"),
+        TokenBreakdown("中文", CHINESE, "zhōng wén","Chinese language")
+    ]
+)
+```
+3. Mixed
+    - Require AI : ✔ When translating input to fullMeaning
+```
+TranslationResult(
+    input       = "我like学习中文",
+    fullMeaning = "我喜欢学习中文",
+    breakdown   = [
+        TokenBreakdown("我",   CHINESE, "wǒ",       "I / me"),
+        TokenBreakdown("喜欢", CHINESE, "xǐ huān",  "to like / to enjoy"),
+        TokenBreakdown("学习", CHINESE, "xué xí",   "to study / to learn"),
+        TokenBreakdown("中文", CHINESE, "zhōng wén","Chinese language")
+    ]
+)
+```
 
----
+Note that there exists 2 different version of **CORE MODULE** that is 1) **Pure** 和2) **Cache** module
+where the module stores previous conversation and return the result should the user had computated it previously
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## TUI 
+1. Add helpful flags such as --version or --help 
+2. Add the total elapsed time during the translation 
+
+
+## Android 
+1. Later
+
+##  Web 
+1. Later

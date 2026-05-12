@@ -9,10 +9,10 @@ data class CedictEntry(
 
 class CedictDictionary(private val source: ByteArray) {
 
-  private val entries: Map<String, CedictEntry> by lazy { parse() }
+  private val entries: Map<String, List<CedictEntry>> by lazy { parse() }
 
-  private fun parse(): Map<String, CedictEntry> {
-    val map = mutableMapOf<String, CedictEntry>()
+  private fun parse(): Map<String, List<CedictEntry>> {
+    val map = mutableMapOf<String, MutableList<CedictEntry>>()
     val text = source.decodeToString()
 
     for (line in text.lines()) {
@@ -28,12 +28,14 @@ class CedictDictionary(private val source: ByteArray) {
       val meanings = match.groupValues[4].split("/")
 
       val entry = CedictEntry(traditional, simplified, pinyin, meanings)
-      map[simplified] = entry
-      map[traditional] = entry
+      map.getOrPut(simplified) { mutableListOf() }.add(entry)
+      if (traditional != simplified) {
+        map.getOrPut(traditional) { mutableListOf() }.add(entry)
+      }
     }
 
     return map
   }
 
-  fun lookup(word: String): CedictEntry? = entries[word]
+  fun lookup(word: String): List<CedictEntry> = entries[word].orEmpty()
 }
