@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
-private const val VERSION = "1.0.0"
+private const val VERSION = "0.1.0"
 private const val DEFAULT_MODEL = "qwen2.5:7b"
 private const val DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
