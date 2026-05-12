@@ -28,17 +28,25 @@ private val HELP = """
       --help, -h              Show this help message
       --version, -v           Show version
 
-    Environment variables (CLI flags take precedence):
+    Configuration precedence: CLI flags > env vars > config file > defaults
+
+    Environment variables:
       JZW_MODEL               Same as --model
       JZW_OLLAMA_URL          Same as --ollama-url
       JZW_CEDICT_PATH         Same as --cedict-path
+
+    Config file:
+      ${'$'}XDG_CONFIG_HOME/jzw/config.toml  (defaults to ~/.config/jzw/config.toml)
+      Keys: model, ollama-url, cedict-path
 """.trimIndent()
 
 fun main(args: Array<String>) {
+    val config = JzwConfig.load()
+
     var noLlm = false
-    var model = System.getenv("JZW_MODEL") ?: DEFAULT_MODEL
-    var ollamaUrl = System.getenv("JZW_OLLAMA_URL") ?: DEFAULT_OLLAMA_URL
-    var cedictPath: String? = System.getenv("JZW_CEDICT_PATH")
+    var model = System.getenv("JZW_MODEL") ?: config.model ?: DEFAULT_MODEL
+    var ollamaUrl = System.getenv("JZW_OLLAMA_URL") ?: config.ollamaUrl ?: DEFAULT_OLLAMA_URL
+    var cedictPath: String? = System.getenv("JZW_CEDICT_PATH") ?: config.cedictPath
     val inputParts = mutableListOf<String>()
 
     var i = 0

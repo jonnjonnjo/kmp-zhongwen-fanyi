@@ -17,4 +17,5 @@ dependencies {
     implementation("com.hankcs:hanlp:portable-1.8.6")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("com.akuleshov7:ktoml-core-jvm:0.7.0")
 }
