@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.jon.zhongwen_helper"
-version = "1.0.0"
+version = "0.1.0"
 
 application {
     mainClass.set("com.jon.zhongwen_helper.tui.MainKt")
