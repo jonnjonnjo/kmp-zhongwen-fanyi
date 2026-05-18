@@ -59,8 +59,17 @@ class OpenAiCompatibleLlmEngine(
         if (response.statusCode() !in 200..299) {
             error("OpenAI-compatible API ${response.statusCode()}: ${response.body()}")
         }
-        json.decodeFromString(ChatCompletionResponse.serializer(), response.body())
+        val raw = json.decodeFromString(ChatCompletionResponse.serializer(), response.body())
             .choices.firstOrNull()?.message?.content
             ?: error("OpenAI-compatible API returned no choices: ${response.body()}")
+        stripReasoning(raw)
     }
 }
+
+// Reasoning models (Qwen3, DeepSeek-R1, QwQ, ...) prefix their answer with
+// a <think>...</think> chain-of-thought block. Strip it so only the answer
+// flows into the breakdown pipeline.
+private val THINK_BLOCK = Regex("<think>.*?</think>", RegexOption.DOT_MATCHES_ALL)
+
+private fun stripReasoning(content: String): String =
+    content.replace(THINK_BLOCK, "").trim()
