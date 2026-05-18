@@ -72,12 +72,26 @@ class TokenizerTest {
     }
 
     @Test
-    fun chinesePunctuationIsClassifiedAsNonChinese() {
-        // 。 (U+3002) is in CJK Symbols & Punctuation, outside the 0x4E00..0x9FFF range,
-        // so the tokenizer treats it as ENGLISH. Documents current behavior.
+    fun chinesePunctuationIsDropped() {
         assertEquals(
-            listOf(Token("你好", Lang.CHINESE), Token("。", Lang.ENGLISH)),
+            listOf(Token("你好", Lang.CHINESE)),
             tokenize("你好。")
+        )
+    }
+
+    @Test
+    fun asciiPunctuationIsDropped() {
+        assertEquals(
+            listOf(Token("are", Lang.ENGLISH), Token("you", Lang.ENGLISH), Token("good", Lang.ENGLISH)),
+            tokenize("are you good?")
+        )
+    }
+
+    @Test
+    fun punctuationBetweenScriptsSplitsCleanly() {
+        assertEquals(
+            listOf(Token("你还好吗", Lang.CHINESE), Token("yes", Lang.ENGLISH)),
+            tokenize("你还好吗？yes!")
         )
     }
 

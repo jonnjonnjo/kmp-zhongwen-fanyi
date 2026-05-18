@@ -8,13 +8,17 @@ fun tokenize(input: String): List<Token> {
   val buffer = StringBuilder()
   var currentLang: Lang? = null
 
+  fun flush() {
+    if (buffer.isNotEmpty()) {
+      tokens.add(Token(buffer.toString(), currentLang!!))
+      buffer.clear()
+      currentLang = null
+    }
+  }
+
   for (char in input.trim()) {
-    if (char.isWhitespace()) {
-      if (buffer.isNotEmpty()) {
-        tokens.add(Token(buffer.toString(), currentLang!!))
-        buffer.clear()
-        currentLang = null
-      }
+    if (char.isWhitespace() || isPunctuation(char)) {
+      flush()
       continue
     }
 
@@ -24,16 +28,17 @@ fun tokenize(input: String): List<Token> {
       buffer.append(char)
       currentLang = charLang
     } else {
-      tokens.add(Token(buffer.toString(), currentLang!!))
-      buffer.clear()
+      flush()
       buffer.append(char)
       currentLang = charLang
     }
   }
 
-  if (buffer.isNotEmpty()) {
-    tokens.add(Token(buffer.toString(), currentLang!!))
-  }
-
+  flush()
   return tokens
 }
+
+// Treats anything that isn't a letter, digit, or whitespace as punctuation —
+// covers both ASCII (.,!?;:'"...) and CJK (。，！？「」…) punctuation in one rule.
+private fun isPunctuation(char: Char): Boolean =
+  !char.isLetterOrDigit() && !char.isWhitespace()
