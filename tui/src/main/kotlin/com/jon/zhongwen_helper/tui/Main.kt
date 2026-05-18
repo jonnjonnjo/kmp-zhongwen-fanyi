@@ -25,12 +25,17 @@ private val HELP = """
 
     Options:
       --no-llm                Offline mode (dictionary-only, no cloud call)
+      --no-cache              Bypass the on-disk LLM response cache
       --model NAME            Cloud model name (e.g. qwen/qwen3-32b)
       --base-url URL          OpenAI-compatible base URL
       --api-key KEY           API key (Bearer token)
       --cedict-path FILE      External CEDICT file (default: bundled)
       --help, -h              Show this help message
       --version, -v           Show version
+
+    LLM responses are cached at ${'$'}XDG_CACHE_HOME/jzw/llm/ (default
+    ~/.cache/jzw/llm/), keyed by (model, prompt). Use --no-cache for a
+    fresh call, or `rm -rf ~/.cache/jzw` to clear everything.
 
     Online mode calls any OpenAI-compatible /chat/completions endpoint
     (OpenAI, OpenRouter, Groq, DeepSeek, Together, Fireworks, Mistral, ...).
@@ -54,6 +59,7 @@ fun main(args: Array<String>) {
     val config = JzwConfig.load()
 
     var noLlm = false
+    var noCache = false
     var model: String? = System.getenv("JZW_MODEL") ?: config.model
     var baseUrl: String? = System.getenv("JZW_BASE_URL") ?: config.baseUrl
     var apiKey: String? = System.getenv("JZW_API_KEY") ?: config.apiKey
@@ -64,6 +70,7 @@ fun main(args: Array<String>) {
     while (i < args.size) {
         when (val arg = args[i]) {
             "--no-llm" -> noLlm = true
+            "--no-cache" -> noCache = true
             "--help", "-h" -> { println(HELP); return }
             "--version", "-v" -> { println("jzw $VERSION"); return }
             "--model" -> {
@@ -110,7 +117,8 @@ fun main(args: Array<String>) {
         )
         return
     } else {
-        OpenAiCompatibleLlmEngine(modelName = model, baseUrl = baseUrl, apiKey = apiKey)
+        val cloud = OpenAiCompatibleLlmEngine(modelName = model, baseUrl = baseUrl, apiKey = apiKey)
+        if (noCache) cloud else CachedLlmEngine(inner = cloud, modelName = model)
     }
 
     val library = TranslationLibrary(
