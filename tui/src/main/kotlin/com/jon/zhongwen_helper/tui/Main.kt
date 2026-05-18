@@ -142,13 +142,21 @@ fun main(args: Array<String>) {
 
         val totalElapsed = start.elapsedNow().toString(DurationUnit.SECONDS, 2)
 
-        println("Input  : ${result.input}")
-        println("Chinese: ${result.chinese ?: "—"}")
-        println("English: ${result.english ?: "—"}")
+        if (result.input != result.chinese && result.input != result.english) {
+            terminal.println("Input  : ${result.input}")
+        }
+        terminal.println("Chinese: ${result.chinese ?: "—"}")
+        terminal.println("English: ${result.english ?: "—"}")
+        val hasPolyphones = result.breakdown.any { it.readings.size > 1 }
         val fullPinyin = result.breakdown
-            .mapNotNull { it.readings.firstOrNull()?.pinyin }
+            .mapNotNull { b ->
+                b.readings.firstOrNull()?.pinyin?.let { p ->
+                    if (b.readings.size > 1) "$p*" else p
+                }
+            }
             .joinToString(" ")
-        println("Pinyin : ${fullPinyin.ifEmpty { "—" }}")
+        val pinyinSuffix = if (hasPolyphones) "  (* = multiple readings; see table)" else ""
+        terminal.println("Pinyin : ${fullPinyin.ifEmpty { "—" }}$pinyinSuffix")
 
         terminal.println(table {
             whitespace = Whitespace.NORMAL
@@ -178,6 +186,6 @@ fun main(args: Array<String>) {
             }
         })
 
-        println("Elapsed: $totalElapsed")
+        terminal.println("Elapsed: $totalElapsed")
     }
 }
