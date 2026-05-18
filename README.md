@@ -85,6 +85,70 @@ where the module stores previous conversation and return the result should the u
 1. Add helpful flags such as --version or --help 
 2. Add the total elapsed time during the translation 
 
+### Modes
+
+`jzw` runs in one of two modes:
+
+- **Offline** (`--no-llm`) — CEDICT-only. Per-token pinyin & meanings for any
+  Chinese input. No translation of full sentences. No network required.
+- **Online** (default) — calls any OpenAI-compatible `/chat/completions`
+  endpoint (OpenAI, OpenRouter, Groq, DeepSeek, Together, Fireworks, Mistral, ...)
+  for full-sentence translation, then runs the CEDICT breakdown on top.
+
+There's no local-LLM mode — for fast inference, point at a hosted endpoint
+(Groq's free tier handles personal use; DeepSeek is dirt-cheap for higher
+quality on Chinese specifically).
+
+Precedence: **CLI flags > env vars > config file.**
+
+### CLI flags
+
+| Flag             | Env var           | Config key     | Notes                                       |
+| ---------------- | ----------------- | -------------- | ------------------------------------------- |
+| `--no-llm`       | —                 | —              | Offline mode (CEDICT-only)                  |
+| `--model`        | `JZW_MODEL`       | `model`        | Cloud model (e.g. `qwen/qwen3-32b`)         |
+| `--base-url`     | `JZW_BASE_URL`    | `base-url`     | OpenAI-compatible base URL                  |
+| `--api-key`      | `JZW_API_KEY`     | `api-key`      | Bearer token                                |
+| `--cedict-path`  | `JZW_CEDICT_PATH` | `cedict-path`  | External CEDICT file (default: bundled)     |
+
+### Examples
+
+```sh
+# Offline (no cloud call, no API key needed)
+jzw --no-llm 大家好
+
+# Online — configure once via config.toml, then just:
+jzw 大家好
+
+# Or override per-call:
+jzw --base-url https://api.deepseek.com/v1 \
+    --api-key $DEEPSEEK_API_KEY \
+    --model deepseek-chat \
+    大家好
+```
+
+### Config file
+
+`$XDG_CONFIG_HOME/jzw/config.toml` (defaults to `~/.config/jzw/config.toml`):
+
+```toml
+base-url = "https://api.groq.com/openai/v1"
+model    = "qwen/qwen3-32b"
+# api-key  = "..."        # safer: leave unset, set JZW_API_KEY in env instead
+```
+
+Convention: CLI flags for one-shot overrides, env vars for session-scoped
+secrets (recommended for `api-key`), config file for stable defaults.
+
+### Picking a provider
+
+| Provider     | Base URL                              | Notes                                         |
+| ------------ | ------------------------------------- | --------------------------------------------- |
+| **Groq**     | `https://api.groq.com/openai/v1`      | Free tier; sub-second response; try `qwen/qwen3-32b` |
+| **DeepSeek** | `https://api.deepseek.com/v1`         | Best Chinese quality per dollar (~$0.27/M in) |
+| **OpenRouter** | `https://openrouter.ai/api/v1`      | One key, ~300 models incl. Claude/GPT-4o      |
+| **OpenAI**   | `https://api.openai.com/v1`           | Default model: `gpt-4o-mini`                  |
+
 
 ## Android 
 1. Later

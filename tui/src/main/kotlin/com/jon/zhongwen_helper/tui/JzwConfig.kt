@@ -10,8 +10,10 @@ import java.nio.file.Paths
 @Serializable
 data class JzwConfig(
     val model: String? = null,
-    @kotlinx.serialization.SerialName("ollama-url")
-    val ollamaUrl: String? = null,
+    @kotlinx.serialization.SerialName("base-url")
+    val baseUrl: String? = null,
+    @kotlinx.serialization.SerialName("api-key")
+    val apiKey: String? = null,
     @kotlinx.serialization.SerialName("cedict-path")
     val cedictPath: String? = null,
 ) {

@@ -16,8 +16,6 @@ import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
 private const val VERSION = "0.1.0"
-private const val DEFAULT_MODEL = "qwen2.5:7b"
-private const val DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 private val HELP = """
     jzw — Chinese translation helper
@@ -26,31 +24,39 @@ private val HELP = """
       jzw [options] <text>
 
     Options:
-      --no-llm                Skip the LLM (dictionary-only mode)
-      --model NAME            Ollama model name (default: $DEFAULT_MODEL)
-      --ollama-url URL        Ollama server URL (default: $DEFAULT_OLLAMA_URL)
+      --no-llm                Offline mode (dictionary-only, no cloud call)
+      --model NAME            Cloud model name (e.g. qwen/qwen3-32b)
+      --base-url URL          OpenAI-compatible base URL
+      --api-key KEY           API key (Bearer token)
       --cedict-path FILE      External CEDICT file (default: bundled)
       --help, -h              Show this help message
       --version, -v           Show version
 
-    Configuration precedence: CLI flags > env vars > config file > defaults
+    Online mode calls any OpenAI-compatible /chat/completions endpoint
+    (OpenAI, OpenRouter, Groq, DeepSeek, Together, Fireworks, Mistral, ...).
+    Configure --base-url + --model + --api-key once via the config file,
+    then `jzw <text>` just works. Use --no-llm for fully offline mode.
+
+    Configuration precedence: CLI flags > env vars > config file
 
     Environment variables:
       JZW_MODEL               Same as --model
-      JZW_OLLAMA_URL          Same as --ollama-url
+      JZW_BASE_URL            Same as --base-url
+      JZW_API_KEY             Same as --api-key
       JZW_CEDICT_PATH         Same as --cedict-path
 
     Config file:
       ${'$'}XDG_CONFIG_HOME/jzw/config.toml  (defaults to ~/.config/jzw/config.toml)
-      Keys: model, ollama-url, cedict-path
+      Keys: model, base-url, api-key, cedict-path
 """.trimIndent()
 
 fun main(args: Array<String>) {
     val config = JzwConfig.load()
 
     var noLlm = false
-    var model = System.getenv("JZW_MODEL") ?: config.model ?: DEFAULT_MODEL
-    var ollamaUrl = System.getenv("JZW_OLLAMA_URL") ?: config.ollamaUrl ?: DEFAULT_OLLAMA_URL
+    var model: String? = System.getenv("JZW_MODEL") ?: config.model
+    var baseUrl: String? = System.getenv("JZW_BASE_URL") ?: config.baseUrl
+    var apiKey: String? = System.getenv("JZW_API_KEY") ?: config.apiKey
     var cedictPath: String? = System.getenv("JZW_CEDICT_PATH") ?: config.cedictPath
     val inputParts = mutableListOf<String>()
 
@@ -64,9 +70,13 @@ fun main(args: Array<String>) {
                 i++
                 model = args.getOrNull(i) ?: run { System.err.println("--model requires a value"); return }
             }
-            "--ollama-url" -> {
+            "--base-url" -> {
                 i++
-                ollamaUrl = args.getOrNull(i) ?: run { System.err.println("--ollama-url requires a value"); return }
+                baseUrl = args.getOrNull(i) ?: run { System.err.println("--base-url requires a value"); return }
+            }
+            "--api-key" -> {
+                i++
+                apiKey = args.getOrNull(i) ?: run { System.err.println("--api-key requires a value"); return }
             }
             "--cedict-path" -> {
                 i++
@@ -84,8 +94,27 @@ fun main(args: Array<String>) {
 
     val input = inputParts.joinToString(" ")
 
+    val engine = if (noLlm) {
+        null
+    } else if (baseUrl.isNullOrBlank() || model.isNullOrBlank()) {
+        System.err.println(
+            """
+            Missing cloud config. Set --base-url and --model (via flag, env, or config file),
+            or pass --no-llm for offline dictionary-only mode.
+
+            Example ~/.config/jzw/config.toml:
+              base-url = "https://api.groq.com/openai/v1"
+              model    = "qwen/qwen3-32b"
+              # api-key set via JZW_API_KEY env var
+            """.trimIndent()
+        )
+        return
+    } else {
+        OpenAiCompatibleLlmEngine(modelName = model, baseUrl = baseUrl, apiKey = apiKey)
+    }
+
     val library = TranslationLibrary(
-        llmEngine = if (noLlm) null else JvmLlmEngine(modelName = model, ollamaUrl = ollamaUrl),
+        llmEngine = engine,
         cedictSource = JvmCedictSource(path = cedictPath),
         segmenter = HanLpSegmenter()
     )

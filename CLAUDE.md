@@ -59,18 +59,21 @@ There is no separate routing layer — the LLM-vs-dictionary decision is implici
 
 Each frontend constructs `TranslationLibrary` directly with its own implementations — there is no DI framework or service locator. Current `tui` implementations:
 
-- `JvmLlmEngine` — POSTs to Ollama (`http://localhost:11434/api/generate`, default model `qwen2.5:7b`). Hand-rolled JSON encoding + regex response extraction; no JSON library dependency.
+- `OpenAiCompatibleLlmEngine` — POSTs to any OpenAI-compatible `/chat/completions` endpoint (OpenAI, OpenRouter, Groq, DeepSeek, Together, Fireworks, Mistral, etc.). Single user-message request. There is no local-LLM mode — for offline use, pass `--no-llm` and run dictionary-only.
 - `JvmCedictSource` — loads `cedict/cedict.txt` via `classLoader.getResourceAsStream`. The file lives at `shared/src/commonMain/resources/cedict/cedict.txt` and reaches the TUI classpath through the `:shared` dependency.
 - `HanLpSegmenter` — wraps `com.hankcs:hanlp:portable-1.8.6`.
 
-When wiring Android, expect to write Android-side counterparts (e.g. MediaPipe `LlmEngine`, `AssetManager`-backed `CedictSource`, and an Android-friendly segmenter — HanLP portable's footprint may or may not be acceptable on mobile).
+When wiring Android, expect to write Android-side counterparts (e.g. an Android HTTP-based `LlmEngine` reusing the OpenAI-compatible shape, `AssetManager`-backed `CedictSource`, and an Android-friendly segmenter — HanLP portable's footprint may or may not be acceptable on mobile).
 
 ## Build & run
 
 ```shell
-# TUI — the only working frontend
+# TUI — online mode (requires --base-url, --model, and usually --api-key
+# from flags, JZW_* env vars, or ~/.config/jzw/config.toml)
 ./gradlew :tui:run --args="我喜欢学习中文"
-./gradlew :tui:run --args="--no-llm 你好"     # dictionary-only mode
+
+# Offline (dictionary-only) mode — no cloud call, no config needed
+./gradlew :tui:run --args="--no-llm 你好"
 
 # Build a runnable script at tui/build/install/jzw/bin/jzw
 ./gradlew :tui:installDist
@@ -89,19 +92,23 @@ When wiring Android, expect to write Android-side counterparts (e.g. MediaPipe `
 ./gradlew :shared:test
 ```
 
-The TUI needs a running Ollama instance unless `--no-llm` is passed; pull the model first (`ollama pull qwen2.5:7b`).
+For online mode without configuring `config.toml`, pass everything inline:
+
+```shell
+./gradlew :tui:run --args="--base-url https://api.groq.com/openai/v1 --model qwen/qwen3-32b --api-key $JZW_API_KEY 我喜欢学习中文"
+```
 
 ## Configuration & packaging roadmap
 
-Long-term goal: ship `jzw` to nixpkgs first, then other distros (AUR, Homebrew, etc).
+Long-term goal: ship `jzw` via the in-repo flake (consumed by home-manager). Possibly AUR/Homebrew later. No nixpkgs PR planned.
 
-**Causality:** the NixOS module is a *thin wrapper* — it just renders config (env vars or a file) that the app reads. So the app must accept external config before any distro packaging can be useful. Work order:
+**Causality:** the NixOS module / flake is a *thin wrapper* — it just renders config (env vars or a file) that the app reads. So the app must accept external config before any distro packaging can be useful. Work order:
 
-1. **CLI flags** — `--model`, `--ollama-url` (and eventually `--help`, `--version`). One-shot overrides, never persisted.
-2. **Env vars** — `JZW_MODEL`, `JZW_OLLAMA_URL`. CLI flags take precedence over env vars.
-3. **(Optional) Config file** — `$XDG_CONFIG_HOME/jzw/config.toml`. Lower precedence than env vars.
-4. **NixOS module** — `programs.jzw = { model = ...; ollamaUrl = ...; }` that maps Nix options to step-2 env vars (or step-3 config file).
-5. **Other distros** — `gradle :tui:installDist` + launcher script; basically free once steps 1–4 are settled.
+1. **CLI flags** — `--model`, `--base-url`, `--api-key`, `--no-llm` (and `--help`, `--version`). One-shot overrides, never persisted.
+2. **Env vars** — `JZW_MODEL`, `JZW_BASE_URL`, `JZW_API_KEY`. CLI flags take precedence over env vars.
+3. **Config file** — `$XDG_CONFIG_HOME/jzw/config.toml`. Lower precedence than env vars. **Never put secrets here** — use the env var for `api-key`.
+4. **home-manager / NixOS module** — could map Nix options to step-2 env vars or step-3 config file. API keys should come from `agenix`/`sops-nix`, not be inlined in Nix config (anything in `/nix/store` is world-readable).
+5. **Other distros** — `gradle :tui:installDist` + launcher script; basically free once steps 1–3 are settled.
 
 Convention (don't deviate): CLI flags = temporary, config file = permanent, env vars = session-scoped permanent. Same as `git`, `kubectl`, `aws`. `jzw --model foo` runs once with `foo`; persisting means editing the config file or shell rc.
 
